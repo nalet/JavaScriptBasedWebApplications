@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="de">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercises05</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+</head>
+
+<body>
+    <h1>This is JavaScript</h1>
+    <p>This text will be translated in morsecode:</p>
+    <h1 id="myMorse">This is JavaScript</h1>
+
+    <script>
+        var alphabetString =
+            "a=.-;b=-...;c=-.-.;d=-..;e=.;f=..-;g=--.;h=....;i=..;j=.---;k=-.-;l=.-..;" +
+            "m=--;n=-.;o=---;p=.---.;q=--.-;r=.-.;s=...;t=-;u=..-;v=...-;w=.--;x=-..-;" +
+            "y=-.-;z=--..; =//;.=.-.-.-;,=--..--;?=..--..;!=-.-.--";
+
+        function charToMorseCode(char) {
+            var split1 = alphabetString.split(";");
+            for (var i = 0; i < split1.length; i++) {
+                if (split1[i][0] == char) {
+                    return (split1[i].substr(2, split1[i].length - 1));
+                }
+            }
+            return "";
+        }
+
+        function convertToMorse(text) {
+            var input = text.toLowerCase();
+            var output = "";
+            for (var i = 0; i < input.length; i++) {
+                output += charToMorseCode(input[i]) + " ";
+            }
+            return output;
+        }
+
+        /////////////////////////////////////////////////////////////////
+        // MAIN CODE                                                   //
+        /////////////////////////////////////////////////////////////////
+
+        //-----------------------------------------------------
+        (function ($) {
+            var counter = 0;
+
+            $.fn.morserify = function (options) {
+
+                return this.each(function () {
+                    var text = $(this).text();
+                    $(this).text(convertToMorse(text));
+                });
+            }
+        })(jQuery);
+        //-----------------------------------------------------
+        $(document).ready(function () {
+            $('#myMorse').morserify();
+        });
+    </script>
+</body>
+
+</html>

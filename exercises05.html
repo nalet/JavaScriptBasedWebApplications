@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="de">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercises05</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+</head>
+
+<body>
+    <h1>Most Famous Quotes</h1>
+    <button id="load">Get 5 Quotes</button>
+    <br>
+    <h2 id="quotesLoading" style="display: none;">Fetching 5 quotes...</h2>
+    <p>
+        <ul id="quotes">
+        </ul>
+    </p>
+    <h1>Most Famous Quotes As Morse Code</h1>
+    <br>
+    <h2 id="quotesMorseLoading" style="display: none;">Converting to morse ...</h2>
+    <p>
+        <ul id="morseQuotes">
+
+        </ul>
+    </p>
+    <pre id="errorConsole" style="background-color: rgb(224, 221, 221)">
+
+    </pre>
+
+    <script>
+        var quoteURL = "https://web.ti.bfh.ch/~lhp2/js/services/quote.php";
+        var morseURL = "https://prof.ti.bfh.ch/~lhp2/js/services/morse.php?text=";
+
+        function showQuotes() {
+            $("#quotesLoading").css("display", "unset");
+            var concurency = 5;
+            var maxTries = 5;
+            var downCount = function () {
+                concurency--;
+                if (concurency == 0) {
+                    $("#quotesLoading").css("display", "none");
+                }
+            };
+
+            var fetcher = function () {
+                getQuote()
+                    .then(function (response) {
+                        $("#quotes").append($("<li>" + response + "</li>"));
+                        appendToMorseList(response);
+                        downCount();
+                    }).catch(function (err) {
+                        myConsoleAddText(err.statusText);
+                        concurency++;
+                        if (maxTries > 0) {
+                            fetcher();
+                            maxTries--;
+                        }
+                        downCount();
+                    });
+            }
+
+            for (var i = 0; i < 5; i++) {
+                fetcher();
+            }
+        }
+
+        function getQuote() {
+            return new Promise(function (resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open("GET", quoteURL);
+                xhr.onload = function () {
+                    if (this.status >= 200 && this.status < 300) {
+                        resolve(xhr.response);
+                    } else {
+                        reject({
+                            status: this.status,
+                            statusText: xhr.statusText
+                        });
+                    }
+                };
+                xhr.onerror = function () {
+                    reject({
+                        status: this.status,
+                        statusText: xhr.statusText
+                    });
+                };
+                xhr.send();
+            });
+        }
+        function toMorse(text) {
+            return new Promise(function (resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open("GET", morseURL + text);
+                xhr.onload = function () {
+                    if (this.status >= 200 && this.status < 300) {
+                        resolve(xhr.response);
+                    } else {
+                        reject({
+                            status: this.status,
+                            statusText: xhr.statusText
+                        });
+                    }
+                };
+                xhr.onerror = function () {
+                    reject({
+                        status: this.status,
+                        statusText: xhr.statusText
+                    });
+                };
+                xhr.send();
+            });
+        }
+
+        function appendToMorseList(text) {
+            $("#quotesMorseLoading").css("display", "unset");
+            var concurency = 5;
+            var maxTries = 5;
+            var downCount = function () {
+                myConsoleAddText(concurency);
+                concurency--;
+                if (concurency == 0) {
+                    $("#quotesMorseLoading").css("display", "none");
+                }
+            };
+
+            var fetcher = function (stext) {
+                toMorse(stext)
+                    .then(function (response) {
+                        $("#morseQuotes").append($("<li>" + response + "</li>"));
+                        setTimeout(function() {
+                            $("#quotesMorseLoading").css("display", "none") 
+                        }, 3000);
+                    }).catch(function (err) {
+                        myConsoleAddText(err.statusText);
+                        concurency++;
+                        if (maxTries > 0) {
+                            fetcher(stext);
+                            maxTries--;
+                        }
+                        downCount();
+                    });
+            }
+
+            fetcher(text);
+        }
+
+        $(document).ready(function () {
+            $('#load').on('click', function (e) {
+                e.preventDefault();
+                showQuotes();
+            });
+        });
+
+        function myConsoleAddText(text) {
+            var html = $("#errorConsole").html();
+            $("#errorConsole").html(html+text+"\n");
+        }
+
+    </script>
+</body>
+
+</html>
